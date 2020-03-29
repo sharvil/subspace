@@ -1,0 +1,44 @@
+encoding binary
+{
+	integer : little_endian;
+	string  : ascii;
+}
+
+message ZoneUpdatePacket
+{
+	iIp            : uint32 [default = 0];
+	iPort          : uint16;
+	iPlayerCount   : uint16;
+	iScoreKeeping  : bool;
+	iHopCount      : uint8  [default = 0];
+	iServerVersion : uint32 [default = 134];
+	iName          : string [length = 32];
+	iPassword      : string [length = 48];
+	iDescription   : string;
+	iTerminator    : uint8  [default = 0];
+}
+
+message ZonePacket
+{
+	iIp            : uint32 [default = 0];
+	iPort          : uint16;
+	iPlayerCount   : uint16;
+	iScoreKeeping  : bool;
+	iHopCount      : uint8  [default = 0];
+	iServerVersion : uint32 [default = 134];
+	iName          : string [length = 64];
+	iDescription   : string;
+	iTerminator    : uint8  [default = 0];
+}
+
+message DirectoryListRequest
+{
+	iType           : uint8  [default = 1];
+	iMinPlayerCount : uint32 [default = 0];
+}
+
+//message DirectoryListResponse
+//{
+//	iType : uint8 [default = 1];
+//	iZoneInfo : repeated ZoneUpdateMessage;
+//}

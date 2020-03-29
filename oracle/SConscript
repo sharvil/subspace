@@ -1,0 +1,16 @@
+import glob
+
+Import('*')
+
+ret = []
+
+if wine:
+	ret += env.Program('bin/oracle38',
+		source = ['src/Configuration.cpp', 'src/PeLoader.cpp', 'src/main38.cpp'],
+		LIBS = ['netlib', 'timelib', 'nucleus', 'ws2_32', 'kernel32'])
+
+	ret += env.Program('bin/oracle40',
+		source = ['src/Configuration.cpp', 'src/PeLoader.cpp', 'src/main40.cpp'],
+		LIBS = ['loglib', 'netlib', 'timelib', 'nucleus', 'ws2_32', 'kernel32'])
+
+Return('ret')

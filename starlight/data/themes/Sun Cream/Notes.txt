@@ -1,0 +1,47 @@
+----------
+SUN_CREAM
+----------
+is a gtk2/Metacity theme for Gnome created mainly for my own need of a theme that was pleasant and
+clean to the eye, but also really useable.
+Initially inspired by the very nice "Digital-Cream" theme by roberTo, it has taken its own path with
+touches of yellow (thus the Sun) that broke the "absolutely smooth" coolness but added visibility
+to focused windows and widgets.
+All widgets have been redrawn or heavily modified so to offer visibilty and feedback, but hopefully
+not distraction when really working with them.
+
+Copyright (C) 2004 Elia Cogodi
+Free for non commercial use 
+
+To grab the latest version visit
+http://www.geocities.com/kitty73it
+
+and for contact
+eliacogodi@tin.it
+
+Elia 
+
+-----------------
+Version History
+-----------------
+0.9
+Very first version, still quite incomplete
+
+0.9.1
+Metacity:
+- Fixed shaded windows styles
+- Cosmetic changes in hilighted window buttons, in particular to make the "close" action more evident 
+- Added an "unmaximize" button 
+GTK2:
+- Added a nice focus overlay 
+- Small cosmetic changes in shadows for panes
+- Changed scrollbars with a proper overlay for the grip
+- tweaked alot the .rc file to change buttons in panels, statusbar buttons etc
+
+0.9.2
+Metacity:
+- increased space between buttons, trying to reduce the chance of accidentally closing a windows
+GTK2:
+- cosmetic changes to the progressbar
+- hacked a lot at the panel section in gtkrc. Not really pretty yet, but the new flat hide buttons 
+  are a bit better,especially when drawn without arrows. Also added a bit of background
+

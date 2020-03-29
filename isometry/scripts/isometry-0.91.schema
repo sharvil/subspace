@@ -1,0 +1,25 @@
+begin;
+
+alter table isometry.zone add column ipaddress inet;
+alter table isometry.zone add column port int2;
+
+create table isometry.loginnonce
+(
+	ipaddress inet primary key,
+	nonce text not null,
+	expirytime timestamp default now() + '1 minute'
+);
+
+create table isometry.sscid
+(
+	ipaddress inet not null,
+	port int2 not null,
+	sscid bytea not null,
+
+	primary key(ipaddress, port)
+);
+
+alter table isometry.opgroup add column cansendbillermessage boolean not null default false;
+alter table isometry.opgroup add column cancheckalias boolean not null default false;
+
+commit;

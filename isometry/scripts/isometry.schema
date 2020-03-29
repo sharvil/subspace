@@ -1,0 +1,422 @@
+begin;
+create schema isometry;
+
+create table isometry.config
+(
+	activeconfig       boolean primary key,
+	zonereclaimtime    interval not null,
+	playerreclaimtime  interval not null
+);
+
+create table isometry.zone
+(
+	id                 serial primary key,
+	isactive           bool not null default true,
+	creationdate       timestamp not null default now(),
+	lastactivedate     timestamp not null default now(),
+	name               text not null,
+	password           text not null,
+	serverid           int4 not null,
+	groupid            int4 not null,
+	scoreid            int4 not null,
+	bantext            text not null default 'You have been banned from this zone. Please contact the zone owner off-line for details.',
+	trusted            bool not null default false
+);
+
+create table isometry.player
+(
+	id                 serial primary key,
+	creationdate       timestamp not null default now(),
+	lastseendate       timestamp not null default now(),
+	secondsplayed      int4 not null default 0,
+	logincount         int4 not null default 0,
+	name               text not null,
+	password           text not null,
+	email              text,
+	squad              int4,                                    -- The foreign key constraint is added in an alter table below.
+	banner             bytea
+);
+
+create unique index player_name_unique on isometry.player ((lower(name)));
+
+create function isometry.bandatamatch(anyarray, anyarray) returns bigint language sql immutable as
+$$
+	select count(nullif($1[i] = $2[i], false)) from generate_series(array_lower($1, 1), array_upper($1, 1)) as i;
+$$;
+
+create table isometry.loginhistory
+(
+	logintime          timestamp not null default now(),
+	playerid           int4 not null references isometry.player(id),
+	zoneid             int4 not null references isometry.zone(id),
+	ipaddress          inet not null,
+	machineid          int4 not null,
+	timezonebias       int4 not null,
+	bandata            int4[14] not null
+);
+
+create table isometry.squad
+(
+	id                 serial primary key,
+	creationdate       timestamp not null default now(),
+	owner              int4 not null references isometry.player(id) on delete restrict,
+	name               text not null,
+	public             bool not null default false
+);
+
+create unique index squad_name_unique on isometry.squad ((lower(name)));
+
+--
+-- This has to happen here since there's a circular reference between
+-- the 'player' and 'squad' tables and postgres apparently doesn't handle
+-- forward references.
+--
+alter table isometry.player add foreign key (squad) references isometry.squad (id) on delete set null;
+
+create table isometry.squadpermission
+(
+	id                 serial primary key,
+	squadid            int4 not null references isometry.squad(id) on delete cascade,
+	playerid           int4 not null references isometry.player(id) on delete cascade,
+	allow              bool not null default false,
+
+	unique(squadid, playerid)
+);
+
+create table isometry.score
+(
+	scoreid           int4 not null,
+	playerid          int4 not null references isometry.player(id) on delete cascade,
+	wins              int4 not null default 0,
+	losses            int4 not null default 0,
+	goals             int4 not null default 0,
+	points            int4 not null default 0,
+	flagPoints        int4 not null default 0,
+
+	primary key (scoreid, playerid)
+);
+
+create table isometry.chat
+(
+	id                serial primary key,
+	creationdate      timestamp not null default now(),
+	owner             int4 not null references isometry.player(id) on delete restrict,
+	name              text not null,
+	public            bool not null default false
+);
+
+create unique index chat_name_unique on isometry.chat ((lower(name)));
+
+create table isometry.chatpermission
+(
+	id                 serial primary key,
+	chatid             int4 not null references isometry.chat(id) on delete cascade,
+	playerid           int4 not null references isometry.player(id) on delete cascade,
+	allow              bool not null default false,
+
+	unique(chatid, playerid)
+);
+
+create table isometry.chatsubscription
+(
+	chatid            int4 not null references isometry.chat(id) on delete cascade,
+	playerid          int4 not null references isometry.player(id) on delete cascade,
+	ordinal           int4 not null,
+
+	primary key (chatid, playerid),
+	unique(playerid, ordinal)
+);
+
+create table isometry.opgroup
+(
+	id                serial primary key,
+	name              text not null,
+	access            int4 not null,
+
+	cannetban         boolean not null default false,
+	netbanperiod      interval not null default '7 days',
+	netbanbyip        boolean not null default false,
+	netipmask         int4 not null default 24 check(netipmask >= 0 and netipmask <= 32),
+	netblockold       boolean not null default false,
+
+	banperiod         interval not null default '7 days',
+	banbyip           boolean not null default false,
+	ipmask            int4 not null default 24 check(ipmask >= 0 and ipmask <= 32),
+	blockold          boolean not null default false,
+
+	addglobalops      boolean default false,
+	addlocalops       boolean default false,
+	updatebantext     boolean default false
+);
+
+create table isometry.globalop
+(
+	playerid          int4 primary key references isometry.player(id) on delete cascade,
+	groupid           int4 not null references isometry.opgroup(id) on delete cascade
+);
+
+create table isometry.localop
+(
+	playerid          int4 not null references isometry.player(id) on delete cascade,
+	zoneid            int4 not null references isometry.zone(id) on delete cascade,
+	groupid           int4 not null references isometry.opgroup(id) on delete cascade,
+
+	primary key(playerid, zoneid)
+);
+
+create table isometry.ban
+(
+	id                serial primary key,
+	bantime           timestamp not null default now(),
+	banperiod         interval not null,
+	bannedby          int4 not null references isometry.player(id) on delete restrict,
+	playerid          int4 not null references isometry.player(id) on delete cascade,
+	zoneid            int4 references isometry.zone(id) on delete cascade,                 -- Null = network ban
+	ipaddress         inet not null,                                                       -- includes netmask
+	machineid         int4 not null,
+	access            int4 not null,                                                       -- The access required to change/remove this ban.
+	bandata           int4[14] not null,
+	comment           text
+);
+
+create table isometry.banfree
+(
+	id                serial primary key,
+	freetime          timestamp not null default now(),
+	freedby           int4 not null references isometry.player(id) on delete restrict,
+	playerid          int4 not null references isometry.player(id) on delete cascade,
+	zoneid            int4 references isometry.zone(id) on delete cascade,
+	access            int4 not null,
+
+	unique(playerid, zoneid)
+);
+
+create table isometry.message
+(
+	time              timestamp not null default now(),
+	source            int4 not null references isometry.player(id) on delete cascade,
+	dest              int4 not null references isometry.player(id) on delete cascade,
+	message           text not null,
+
+	primary key(source, dest)
+);
+
+insert into isometry.player (name, password) values ('Snrrrub', '<redacted>');
+insert into isometry.player (name, password) values ('Snrrrub2', '<redacted>');
+
+insert into isometry.opgroup
+(
+	name,
+	access,
+	cannetban,
+	netbanperiod,
+	netbanbyip,
+	netipmask,
+	netblockold,
+	banperiod,
+	banbyip,
+	ipmask,
+	blockold,
+	addglobalops,
+	addlocalops,
+	updatebantext
+)
+values
+(
+	'BanG L0N',
+	0,
+	true,
+	'1000 years',
+	true,
+	0,
+	true,
+	'1000 years',
+	true,
+	0,
+	true,
+	true,
+	true,
+	true
+);
+
+insert into isometry.opgroup
+(
+	name,
+	access,
+	cannetban,
+	netbanperiod,
+	netbanbyip,
+	netipmask,
+	netblockold,
+	banperiod,
+	banbyip,
+	ipmask,
+	blockold,
+	addglobalops,
+	addlocalops,
+	updatebantext
+)
+values
+(
+	'BanG L1N',
+	1,
+	true,
+	'5000 days',
+	true,
+	24,
+	true,
+	'1000 years',
+	true,
+	0,
+	true,
+	false,
+	true,
+	true
+);
+
+insert into isometry.opgroup
+(
+	name,
+	access,
+	cannetban,
+	netbanperiod,
+	netbanbyip,
+	netipmask,
+	netblockold,
+	banperiod,
+	banbyip,
+	ipmask,
+	blockold,
+	addglobalops,
+	addlocalops,
+	updatebantext
+)
+values
+(
+	'BanG L1',
+	1,
+	false,
+	'0 days',
+	false,
+	32,
+	false,
+	'1000 years',
+	true,
+	0,
+	true,
+	false,
+	true,
+	true
+);
+
+insert into isometry.opgroup
+(
+	name,
+	access,
+	cannetban,
+	netbanperiod,
+	netbanbyip,
+	netipmask,
+	netblockold,
+	banperiod,
+	banbyip,
+	ipmask,
+	blockold,
+	addglobalops,
+	addlocalops,
+	updatebantext
+)
+values
+(
+	'BanG L2',
+	2,
+	false,
+	'0 days',
+	false,
+	32,
+	false,
+	'365 days',
+	true,
+	16,
+	true,
+	false,
+	true,
+	true
+);
+
+insert into isometry.opgroup
+(
+	name,
+	access,
+	cannetban,
+	netbanperiod,
+	netbanbyip,
+	netipmask,
+	netblockold,
+	banperiod,
+	banbyip,
+	ipmask,
+	blockold,
+	addglobalops,
+	addlocalops,
+	updatebantext
+)
+values
+(
+	'BanG L3',
+	3,
+	false,
+	'0 days',
+	false,
+	32,
+	false,
+	'30 days',
+	true,
+	24,
+	false,
+	false,
+	true,
+	false
+);
+
+insert into isometry.opgroup
+(
+	name,
+	access,
+	cannetban,
+	netbanperiod,
+	netbanbyip,
+	netipmask,
+	netblockold,
+	banperiod,
+	banbyip,
+	ipmask,
+	blockold,
+	addglobalops,
+	addlocalops,
+	updatebantext
+)
+values
+(
+	'BanG L4',
+	4,
+	false,
+	'0 days',
+	false,
+	32,
+	false,
+	'7 days',
+	false,
+	32,
+	false,
+	false,
+	false,
+	false
+);
+
+insert into isometry.globalop (playerid, groupid) values (1, 1);
+insert into isometry.globalop (playerid, groupid) values (2, 1);
+
+insert into isometry.config (activeconfig, zonereclaimtime, playerreclaimtime) values (true, '1 month', '1 year');
+
+commit;

@@ -1,0 +1,9 @@
+import glob
+
+Import('env')
+
+ret = env.Program('attack',
+	source = glob.glob('src/*.cpp'),
+	LIBS = ['ssnetlib', 'netlib', 'timelib', 'cryptolib', 'nucleus'] + env['LIBS'])
+
+Return('ret')

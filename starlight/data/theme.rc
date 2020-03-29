@@ -1,0 +1,2 @@
+#(default)
+include "themes/(default)/gtk-2.0/gtkrc"

@@ -1,0 +1,48 @@
+# Configuration Options:
+#
+# BaseListenPort = ####
+#     Default: 4990
+#     Description: The port on which the server should listen for client connections
+#
+# UpstreamServers = dir1.example.com, dir2.example.com:1234, ...
+#     Default: sscentral.sscuservers.net, ssdir.playsubspace.com, warpath.bluetoast.org
+#     Description: A list of directory servers to mirror
+#
+UpstreamServers = ssdir.playsubspace.com, ds1.krslynx.com, ds1.hlrse.net, sscentral.sscuservers.net, dirserver.ssnecentral.net
+# ZoneRefreshSeconds = ####
+#     Default: 60
+#     Description: Rate at which zones are fetched from upstream servers
+#
+# ZoneBanPrefix = prefix1, prefix2, ...
+#     Default:
+#     Description: Zones with any of these prefixes will be removed from the directory listing
+#
+# ZoneBanString = string1, string2, ...
+#     Default:
+#     Description: Zones with names containing any of these strings will be removed from the directory listing
+#
+# ZoneBanNetmask = cidr_netmask1, cidr_netmask2, ...
+#     Default:
+#     Description: Zones with IP addresses that are in the subnet specified by the CIDR netmask will be removed from
+#                  the directory listing.
+#     Example: ZoneBanNetmask = 192.168.0.0/16, 172.16.0.0/12, 10.0.0.0/8
+#
+# PasswordReclaimSeconds = ####
+#     Default: 86400
+#     Description: The amount of time before a zone name becomes available again (i.e. password change)
+#
+# StatisticsWriteSeconds = ####
+#     Default: 60
+#     Description: The amount of time between two successive dumps of the server's statistics
+#
+LogFile = /dev/stdout
+#     Default:
+#     Description: The log file name for the server. Logging is disabled if the filename is empty.
+#
+LogDebug = 1
+#     Default:
+#     Description: Enables debugging information in the log if LogDebug = 1. This has to be set after LogFile.
+#
+# TimeToLive = #
+#     Default: 5
+#     Description: Specifies the visible zone update subgraph based on this graph diameter.

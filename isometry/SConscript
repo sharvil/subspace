@@ -1,0 +1,9 @@
+import glob
+
+Import('env')
+
+ret = env.Program('bin/isometry',
+	source = glob.glob('src/*.cpp') + glob.glob('src/database/*.cpp'),
+	LIBS = ['cpulib', 'ssnetlib', 'netlib', 'dblib', 'timelib', 'threadlib', 'cryptolib', 'loglib', 'nucleus', 'z', 'pqxx'] + env['LIBS'])
+
+Return('ret')

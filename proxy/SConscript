@@ -1,0 +1,10 @@
+import glob
+
+Import('env')
+
+env.Prepend()
+ret = env.Program('bin/proxy',
+	source = glob.glob('src/*.cpp'),
+	LIBS = ['netlib', 'timelib', 'cryptolib', 'nucleus'] + env['LIBS'])
+
+Return('ret')

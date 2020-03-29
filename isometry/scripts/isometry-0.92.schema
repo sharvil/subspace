@@ -1,0 +1,35 @@
+begin;
+
+create table isometry.zoneowners
+(
+	zoneid   int4 not null references isometry.zone(id),
+	playerid int4 not null references isometry.player(id),
+
+	primary key(playerid, zoneid)
+);
+
+insert into isometry.zoneowners (playerid, zoneid) values (5, 2);		-- Sketter : Cold Fusion
+insert into isometry.zoneowners (playerid, zoneid) values (43, 5);		-- Resol   : Digital Core
+insert into isometry.zoneowners (playerid, zoneid) values (418, 23);	-- Gdogkiller : Superspace
+insert into isometry.zoneowners (playerid, zoneid) values (651, 30);	-- Adam01 : Cold Wars
+insert into isometry.zoneowners (playerid, zoneid) values (6, 4);		-- Commander Hardball : Call of Duty
+insert into isometry.zoneowners (playerid, zoneid) values (45, 28);		-- Acer.101 : Deep Energy
+insert into isometry.zoneowners (playerid, zoneid) values (618, 27);	-- Icebird : Starcraft
+
+alter table isometry.zone add column ismanaged boolean not null default false;
+
+update isometry.zone set ismanaged=true where name ilike 'SSA %';
+
+commit;
+
+--
+-- The following section undoes the schema change. Note that all new information is dropped
+-- entirely, not just the data inserted above.
+--
+
+begin;
+
+drop table isometry.zoneowners;
+alter table isometry.zone drop column ismanaged;
+
+rollback;

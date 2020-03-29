@@ -1,0 +1,12 @@
+system=black
+arena=green
+public=black
+frequency=gold
+private=green
+warning=orange
+timestamp=grey
+channel=red
+publicmacro=black
+remotefrequency=gold
+remoteprivate=green
+error=red

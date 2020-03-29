@@ -1,0 +1,6 @@
+execfile('../../environment.py')
+
+env.Prepend(LIBS = ['ssnetlib', 'netlib', 'timelib', 'threadlib', 'cryptolib', 'loglib', 'nucleus', 'z'])
+env.ParseConfig('pkg-config --libs --cflags gtk+-2.0 libglade-2.0 gdk-pixbuf-2.0')
+env.Program('bin/starlight',
+	source = glob.glob('src/*.cpp'))

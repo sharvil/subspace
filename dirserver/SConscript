@@ -1,0 +1,11 @@
+import glob
+
+Import('env')
+
+env.Protocol('proto/dirserver')
+
+ret = env.Program('bin/dirserver',
+	source = glob.glob('src/*.cpp'),
+	LIBS = ['ssnetlib', 'netlib', 'cryptolib', 'loglib', 'timelib', 'nucleus'] + env['LIBS'])
+
+Return('ret')

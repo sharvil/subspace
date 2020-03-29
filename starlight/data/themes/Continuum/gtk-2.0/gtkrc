@@ -1,0 +1,7 @@
+style "default"
+{
+	text[NORMAL] = "#c0c0c0"
+	base[NORMAL] = "#000000"
+}
+
+class "GtkWidget" style "default"

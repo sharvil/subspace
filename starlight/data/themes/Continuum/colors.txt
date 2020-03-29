@@ -1,0 +1,12 @@
+system=#ffffff
+arena=#80ff80
+public=#8080ff
+frequency=#ffff80
+private=#80ff80
+warning=#ff4040
+timestamp=#c0c0c0
+channel=#ff8080
+publicmacro=#ff80ff
+remotefrequency=#8080ff
+remoteprivate=#80ff80
+error=#ff0000
